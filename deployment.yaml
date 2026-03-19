@@ -8,6 +8,6 @@ spec:
     spec:
       containers:
         - name: hello-world
-          image: YOUR_DOCKERHUB_USERNAME/hello-world:latest
+          image: kushitha22/hello-world:latest
           imagePullPolicy: Always
       restartPolicy: Never
