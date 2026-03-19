@@ -1,0 +1,46 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: hello-app
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 🔐 Login to DockerHub
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # 🐳 Build & Push Image
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/hello-app:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/hello-app:latest
+
+    # ☁️ Azure Login
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # 📦 Set AKS Context
+    - name: Set AKS Context
+      run: |
+        az aks get-credentials --resource-group myRG --name myAKSCluster --overwrite-existing
+
+    # 🚀 Deploy to Kubernetes
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f deployment.yaml
